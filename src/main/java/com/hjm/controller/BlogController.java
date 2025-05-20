@@ -2,6 +2,7 @@ package com.hjm.controller;
 
 import com.hjm.common.BaseResponse;
 import com.hjm.common.ResultUtils;
+import com.hjm.model.entity.Blog;
 import com.hjm.model.vo.BlogVO;
 import com.hjm.service.BlogService;
 
@@ -10,6 +11,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("blog")
@@ -22,4 +25,11 @@ public class BlogController {
         BlogVO blogVO = blogService.getBlogVOById(blogId, request);
         return ResultUtils.success(blogVO);
     }
+    @GetMapping("/list")
+    public BaseResponse<List<BlogVO>> list(HttpServletRequest request) {
+        List<Blog> blogList = blogService.list();
+        List<BlogVO> blogVOList = blogService.getBlogVOList(blogList, request);
+        return ResultUtils.success(blogVOList);
+    }
+
 }
