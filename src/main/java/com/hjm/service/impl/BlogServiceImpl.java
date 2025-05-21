@@ -3,6 +3,7 @@ package com.hjm.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.common.hash.BloomFilter;
 import com.hjm.constant.ThumbConstant;
 import com.hjm.model.entity.Blog;
 import com.hjm.model.entity.Thumb;
@@ -18,6 +19,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +44,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
 
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
+    @Resource
+    private BloomFilter<String> bloomFilter;
 
 
 
@@ -79,6 +83,47 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
                 .toList();
     }
 
+    ///**
+    // * 布隆过滤器+redis优化后
+    // * @param blogList
+    // * @param request
+    // * @return
+    // */
+    //@Override
+    //public List<BlogVO> getBlogVOList(List<Blog> blogList, HttpServletRequest request) {
+    //    User loginUser = userService.getLoginUser(request);
+    //    Map<Long, Boolean> blogIdHasThumbMap = new HashMap<>();
+    //
+    //    if (ObjUtil.isNotEmpty(loginUser)) {
+    //        for (Blog blog : blogList) {
+    //            String bloomKey = ThumbConstant.USER_THUMB_KEY_PREFIX + loginUser.getId() + ":" + blog.getId();
+    //            if (bloomFilter.mightContain(bloomKey)) {
+    //                String key = ThumbConstant.USER_THUMB_KEY_PREFIX + loginUser.getId() + ":" + blog.getId();
+    //                Boolean hasThumb = redisTemplate.hasKey(key);
+    //                if (hasThumb == null) {
+    //                    // Redis 中不存在，检查是否超过过期时间
+    //                    if (blog.getCreateTime().toInstant().atOffset(ZoneOffset.UTC).toLocalDateTime().plusMonths(1).isBefore(java.time.LocalDateTime.now())) {
+    //                        // 超过过期时间，从数据库查询
+    //                        hasThumb = thumbService.hasThumb(blog.getId(), loginUser.getId());
+    //                    } else {
+    //                        hasThumb = false;
+    //                    }
+    //                }
+    //                blogIdHasThumbMap.put(blog.getId(), hasThumb);
+    //            } else {
+    //                blogIdHasThumbMap.put(blog.getId(), false);
+    //            }
+    //        }
+    //    }
+    //
+    //    return blogList.stream()
+    //            .map(blog -> {
+    //                BlogVO blogVO = BeanUtil.copyProperties(blog, BlogVO.class);
+    //                blogVO.setHasThumb(blogIdHasThumbMap.get(blog.getId()));
+    //                return blogVO;
+    //            })
+    //            .collect(Collectors.toList());
+    //}
 
     private BlogVO getBlogVO(Blog blog, User loginUser) {
         BlogVO blogVO = new BlogVO();
